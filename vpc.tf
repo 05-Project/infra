@@ -36,6 +36,26 @@ resource "aws_default_subnet" "public_04"{
     }
 }
 
+resource "aws_subnet" "private_01" {
+    vpc_id = aws_default_vpc.project05_VPC.id
+    cidr_block = "172.31.64.0/20"
+}
+
+resource "aws_subnet" "private_02" {
+    vpc_id = aws_default_vpc.project05_VPC.id
+    cidr_block = "172.31.80.0/20"
+}
+
+resource "aws_subnet" "private_03" {
+    vpc_id = aws_default_vpc.project05_VPC.id
+    cidr_block = "172.31.96.0/20"
+}
+
+resource "aws_subnet" "private_04" {
+    vpc_id = aws_default_vpc.project05_VPC.id
+    cidr_block = "172.31.112.0/20"
+}
+
 resource "aws_internet_gateway" "project05_VPC_gateway" {
     vpc_id = aws_default_vpc.project05_VPC.id
 }
