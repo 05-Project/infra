@@ -58,6 +58,7 @@ resource "aws_subnet" "private_04" {
 
 resource "aws_lb_target_group" "project-05-lb-target" {
     name = "project-05-lb-target"
+    target_type = "alb"
     port = 80
     protocol = "HTTP"
     vpc_id = aws_default_vpc.project05_VPC.id
@@ -72,12 +73,12 @@ resource "aws_autoscaling_group" "project-05-was-scale-group" {
     min_size = 2
     max_size = 4
     desired_capacity = 2
-    launch_configuration = "#"
+    launch_configuration = [aws_instance.was01, aws_instance.was02]
     vpc_zone_identifier = [aws_default_subnet.public_01, aws_default_subnet.public_02, aws_default_subnet.public_03, aws_default_subnet.public_04]
 }
 
-resource "aws_lb" "project-05-was-lb" {
-    name = "project-05-was-lb"
+resource "aws_lb" "project-05-kube-lb" {
+    name = "project-05-kube-lb"
     internal = false
     load_balancer_type = "application"
     security_groups = [project05_VPC_security.id]
@@ -85,7 +86,7 @@ resource "aws_lb" "project-05-was-lb" {
 }
 
 resource "aws_lb_listener" "project05-lb-ln" {
-    load_balancer_arn = aws_lb.project-05-was-lb.arn
+    load_balancer_arn = aws_lb.project-05-kube-lb.arn
     port = "80"
     protocol = "HTTP"
 
