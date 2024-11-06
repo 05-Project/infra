@@ -72,8 +72,8 @@ resource "aws_subnet" "private_04" {
 resource "aws_lb_target_group" "project-05-lb-target" {
   name        = "project-05-lb-target"
   target_type = "alb"
-  port        = 80
-  protocol    = "HTTP"
+  port        = 22
+  protocol    = "TCP"
   vpc_id      = aws_default_vpc.project05_VPC.id
 }
 
@@ -82,20 +82,27 @@ resource "aws_autoscaling_attachment" "project05-as-attachment" {
   lb_target_group_arn    = aws_lb_target_group.project-05-lb-target.arn
 }
 
+resource "aws_launch_configuration" "project-05-was-launch" {
+  name_prefix     = "was-launch-config"
+  image_id        = var.ami_id
+  instance_type   = "t2.micro"
+  security_groups = [aws_security_group.was_sg.id]
+}
+
 resource "aws_autoscaling_group" "project-05-was-scale-group" {
   min_size             = 2
   max_size             = 4
   desired_capacity     = 2
-  launch_configuration = [aws_instance.was01, aws_instance.was02]
-  vpc_zone_identifier  = [aws_default_subnet.public_01, aws_default_subnet.public_02, aws_default_subnet.public_03, aws_default_subnet.public_04]
+  launch_configuration = aws_launch_configuration.project-05-was-launch.id
+  vpc_zone_identifier  = [aws_default_subnet.public_01.id, aws_default_subnet.public_02.id, aws_default_subnet.public_03.id, aws_default_subnet.public_04.id]
 }
 
 resource "aws_lb" "project-05-kube-lb" {
   name               = "project-05-kube-lb"
   internal           = false
   load_balancer_type = "application"
-  security_groups    = [aws_default_security_group.project05_VPC_security]
-  subnets            = [aws_default_subnet.public_01, aws_default_subnet.public_02, aws_default_subnet.public_03, aws_default_subnet.public_04]
+  security_groups    = [aws_default_security_group.project05_VPC_security.id]
+  subnets            = [aws_default_subnet.public_01.id, aws_default_subnet.public_02.id, aws_default_subnet.public_03.id, aws_default_subnet.public_04.id]
 }
 
 resource "aws_lb_listener" "project05-lb-ln" {
@@ -156,6 +163,31 @@ resource "aws_default_security_group" "project05_VPC_security" {
     to_port     = 0
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+# was-sg
+resource "aws_security_group" "was_sg" {
+  name        = "was_sg"
+  description = "WAS security group"
+  vpc_id      = aws_default_vpc.project05_VPC.id
+
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "was_sg"
   }
 }
 
@@ -237,7 +269,7 @@ resource "aws_security_group" "nat_sg" {
   tags = { Name = "nat-sg" }
 }
 
-resource "aws_default_route_table" "project05_VPC_route_table" {
+resource "aws_default_route_table" "project05_VPC_public_route_table" {
   default_route_table_id = aws_default_vpc.project05_VPC.default_route_table_id
 
   route {
