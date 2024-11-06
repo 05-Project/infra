@@ -39,21 +39,37 @@ resource "aws_default_subnet" "public_04"{
 resource "aws_subnet" "private_01" {
     vpc_id = aws_default_vpc.project05_VPC.id
     cidr_block = "172.31.64.0/20"
+
+    tags = {
+      Name = "private_01"
+    }
 }
 
 resource "aws_subnet" "private_02" {
     vpc_id = aws_default_vpc.project05_VPC.id
     cidr_block = "172.31.80.0/20"
+
+    tags = {
+      Name = "private_02"
+    }
 }
 
 resource "aws_subnet" "private_03" {
     vpc_id = aws_default_vpc.project05_VPC.id
     cidr_block = "172.31.96.0/20"
+
+    tags = {
+      Name = "private_03"
+    }
 }
 
 resource "aws_subnet" "private_04" {
     vpc_id = aws_default_vpc.project05_VPC.id
     cidr_block = "172.31.112.0/20"
+
+    tags = {
+      Name = "private_04"
+    }
 }
 
 resource "aws_lb_target_group" "project-05-lb-target" {
@@ -146,7 +162,7 @@ resource "aws_default_security_group" "project05_VPC_security" {
     }
 }
 
-resource "aws_default_route_table" "project05_VPC_route_table" {
+resource "aws_default_route_table" "project05_VPC_public_route_table" {
     default_route_table_id = aws_default_vpc.project05_VPC.default_route_table_id
 
     route {
@@ -155,7 +171,7 @@ resource "aws_default_route_table" "project05_VPC_route_table" {
     }
 
     tags = {
-        Name = "project05_VPC_gateway"
+        Name = "project05_VPC_public_gateway"
     }
 }
 
@@ -184,6 +200,10 @@ resource "aws_route_table" "project05_VPC_private_route_table" {
 
     route {
         cidr_block = "172.31.0.0/20"
+    }
+
+        tags = {
+        Name = "project05_VPC_private_gateway"
     }
 }
 
