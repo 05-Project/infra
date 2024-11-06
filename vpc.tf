@@ -136,7 +136,7 @@ resource "aws_security_group" "rds_sg" {
 # RDS-subnet-group
 resource "aws_db_subnet_group" "rds_sub_group" {
   name       = "rds-sub-group"
-  subnet_ids = [aws_subnet.private_01.id, aws_subnet.private_02.id]
+  subnet_ids = [aws_subnet.private_03.id, aws_subnet.private_04.id]
 
   tags = {
     Name = "rds-sub-group"
