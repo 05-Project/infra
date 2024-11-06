@@ -39,11 +39,15 @@ resource "aws_default_subnet" "public_04"{
 resource "aws_subnet" "private_01" {
     vpc_id = aws_default_vpc.project05_VPC.id
     cidr_block = "172.31.64.0/20"
+    tags = {Name = "private_01"}
+    availability_zone = "ap-northeast-2a"
 }
 
 resource "aws_subnet" "private_02" {
     vpc_id = aws_default_vpc.project05_VPC.id
     cidr_block = "172.31.80.0/20"
+    tags = {Name = "private_02"}
+    availability_zone = "ap-northeast-2c"
 }
 
 resource "aws_subnet" "private_03" {
@@ -104,6 +108,78 @@ resource "aws_default_security_group" "project05_VPC_security" {
         protocol    = "-1"
         cidr_blocks = ["0.0.0.0/0"]
     }
+}
+
+# RDS-sg
+resource "aws_security_group" "rds_sg" {
+  name = "rds-sg"
+  description = "RDS security group for PostgreSQL"
+  vpc_id = aws_default_vpc.project05_VPC.id
+
+  ingress {
+    from_port = 5432
+    to_port = 5432
+    protocol = "tcp"
+    cidr_blocks = [ "0.0.0.0/0" ]
+  }
+  egress {
+    from_port = 0
+    to_port = 0
+    protocol = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  tags = {
+    Name = "rds-sg"
+  }
+}
+
+# RDS-subnet-group
+resource "aws_db_subnet_group" "rds_sub_group" {
+  name = "rds-sub-group"
+  subnet_ids = [ aws_subnet.private_01.id, aws_subnet.private_02.id ]
+
+  tags = {
+    Name = "rds-sub-group"
+  }
+}
+
+# Bastion-host-ec2-sg
+resource "aws_security_group" "bastion_sg" {
+  name = "bastion-sg"
+  vpc_id = aws_default_vpc.project05_VPC.id
+
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = [ "0.0.0.0/0" ]
+  }
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = [ "0.0.0.0/0" ]
+  }
+  tags = { Name = "bastion-sg" }
+}
+
+# NAT-sg
+resource "aws_security_group" "nat_sg" {
+  name = "nat-sg"
+  vpc_id = aws_default_vpc.project05_VPC.id
+  ingress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = [ "0.0.0.0/0" ]
+  }
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = [ "0.0.0.0/0" ]
+  }
+  tags = { Name = "nat-sg" }
 }
 
 resource "aws_default_route_table" "project05_VPC_route_table" {
