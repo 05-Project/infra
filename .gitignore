@@ -50,6 +50,9 @@ Temporary Items
 # Local .terraform directories
 **/.terraform/*
 
+# variables file
+variables.tf
+
 # .tfstate files
 *.tfstate
 *.tfstate.*
