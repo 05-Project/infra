@@ -48,16 +48,65 @@ resource "aws_subnet" "private_02" {
   cidr_block        = "172.31.80.0/20"
   tags              = { Name = "private_02" }
   availability_zone = "ap-northeast-2c"
+
 }
 
 resource "aws_subnet" "private_03" {
   vpc_id     = aws_default_vpc.project05_VPC.id
   cidr_block = "172.31.96.0/20"
+
+  tags = {
+    Name = "private_03"
+  }
 }
 
 resource "aws_subnet" "private_04" {
   vpc_id     = aws_default_vpc.project05_VPC.id
   cidr_block = "172.31.112.0/20"
+
+  tags = {
+    Name = "private_04"
+  }
+}
+
+resource "aws_lb_target_group" "project-05-lb-target" {
+  name        = "project-05-lb-target"
+  target_type = "alb"
+  port        = 80
+  protocol    = "HTTP"
+  vpc_id      = aws_default_vpc.project05_VPC.id
+}
+
+resource "aws_autoscaling_attachment" "project05-as-attachment" {
+  autoscaling_group_name = aws_autoscaling_group.project-05-was-scale-group.id
+  lb_target_group_arn    = aws_lb_target_group.project-05-lb-target.arn
+}
+
+resource "aws_autoscaling_group" "project-05-was-scale-group" {
+  min_size             = 2
+  max_size             = 4
+  desired_capacity     = 2
+  launch_configuration = [aws_instance.was01, aws_instance.was02]
+  vpc_zone_identifier  = [aws_default_subnet.public_01, aws_default_subnet.public_02, aws_default_subnet.public_03, aws_default_subnet.public_04]
+}
+
+resource "aws_lb" "project-05-kube-lb" {
+  name               = "project-05-kube-lb"
+  internal           = false
+  load_balancer_type = "application"
+  security_groups    = [aws_default_security_group.project05_VPC_security]
+  subnets            = [aws_default_subnet.public_01, aws_default_subnet.public_02, aws_default_subnet.public_03, aws_default_subnet.public_04]
+}
+
+resource "aws_lb_listener" "project05-lb-ln" {
+  load_balancer_arn = aws_lb.project-05-kube-lb.arn
+  port              = "80"
+  protocol          = "HTTP"
+
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.project-05-lb-target.arn
+  }
 }
 
 resource "aws_internet_gateway" "project05_VPC_gateway" {
@@ -197,26 +246,58 @@ resource "aws_default_route_table" "project05_VPC_route_table" {
   }
 
   tags = {
-    Name = "project05_VPC_gateway"
+    Name = "project05_VPC_public_gateway"
   }
 }
 
-resource "aws_route_table_association" "first" {
+resource "aws_route_table_association" "public_01_connect" {
   subnet_id      = aws_default_subnet.public_01.id
-  route_table_id = aws_default_route_table.project05_VPC_route_table.id
+  route_table_id = aws_default_route_table.project05_VPC_public_route_table.id
 }
 
-resource "aws_route_table_association" "second" {
+resource "aws_route_table_association" "public_02_connect" {
   subnet_id      = aws_default_subnet.public_02.id
-  route_table_id = aws_default_route_table.project05_VPC_route_table.id
+  route_table_id = aws_default_route_table.project05_VPC_public_route_table.id
 }
 
-resource "aws_route_table_association" "third" {
+resource "aws_route_table_association" "public_03_connect" {
   subnet_id      = aws_default_subnet.public_03.id
-  route_table_id = aws_default_route_table.project05_VPC_route_table.id
+  route_table_id = aws_default_route_table.project05_VPC_public_route_table.id
 }
 
-resource "aws_route_table_association" "fourth" {
+resource "aws_route_table_association" "public_04_connect" {
   subnet_id      = aws_default_subnet.public_04.id
-  route_table_id = aws_default_route_table.project05_VPC_route_table.id
+  route_table_id = aws_default_route_table.project05_VPC_public_route_table.id
+}
+
+resource "aws_route_table" "project05_VPC_private_route_table" {
+  vpc_id = aws_default_vpc.project05_VPC.id
+
+  route {
+    cidr_block = "172.31.0.0/20"
+  }
+
+  tags = {
+    Name = "project05_VPC_private_gateway"
+  }
+}
+
+resource "aws_route_table_association" "private_01_connect" {
+  subnet_id      = aws_subnet.private_01.id
+  route_table_id = aws_route_table.project05_VPC_private_route_table.id
+}
+
+resource "aws_route_table_association" "private_02_connect" {
+  subnet_id      = aws_subnet.private_02.id
+  route_table_id = aws_route_table.project05_VPC_private_route_table.id
+}
+
+resource "aws_route_table_association" "private_03_connect" {
+  subnet_id      = aws_subnet.private_03.id
+  route_table_id = aws_route_table.project05_VPC_private_route_table.id
+}
+
+resource "aws_route_table_association" "private_04_connect" {
+  subnet_id      = aws_subnet.private_04.id
+  route_table_id = aws_route_table.project05_VPC_private_route_table.id
 }
