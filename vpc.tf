@@ -159,22 +159,50 @@ resource "aws_default_route_table" "project05_VPC_route_table" {
     }
 }
 
-resource "aws_route_table_association" "first" {
+resource "aws_route_table_association" "public_01_asso" {
     subnet_id      = aws_default_subnet.public_01.id
     route_table_id = aws_default_route_table.project05_VPC_route_table.id
 }
 
-resource "aws_route_table_association" "second" {
+resource "aws_route_table_association" "public_02_asso" {
     subnet_id      = aws_default_subnet.public_02.id
     route_table_id = aws_default_route_table.project05_VPC_route_table.id
 }
 
-resource "aws_route_table_association" "third" {
+resource "aws_route_table_association" "public_03_asso" {
     subnet_id      = aws_default_subnet.public_03.id
     route_table_id = aws_default_route_table.project05_VPC_route_table.id
 }
 
-resource "aws_route_table_association" "fourth" {
+resource "aws_route_table_association" "public_04_asso" {
     subnet_id      = aws_default_subnet.public_04.id
     route_table_id = aws_default_route_table.project05_VPC_route_table.id
+}
+
+resource "aws_route_table" "project05_VPC_private_route_table" {
+    vpc_id = aws_default_vpc.project05_VPC.id
+
+    route {
+        cidr_block = "172.31.0.0/20"
+    }
+}
+
+resource "aws_route_table_association" "private_01_asso" {
+  subnet_id = aws_subnet.private_01.id
+  route_table_id = aws_route_table.project05_VPC_private_route_table.id
+}
+
+resource "aws_route_table_association" "private_02_asso" {
+  subnet_id = aws_subnet.private_02.id
+  route_table_id = aws_route_table.project05_VPC_private_route_table.id
+}
+
+resource "aws_route_table_association" "private_03_asso" {
+  subnet_id = aws_subnet.private_03.id
+  route_table_id = aws_route_table.project05_VPC_private_route_table.id
+}
+
+resource "aws_route_table_association" "private_04_asso" {
+  subnet_id = aws_subnet.private_04.id
+  route_table_id = aws_route_table.project05_VPC_private_route_table.id
 }
