@@ -81,7 +81,7 @@ resource "aws_lb" "project-05-kube-lb" {
     name = "project-05-kube-lb"
     internal = false
     load_balancer_type = "application"
-    security_groups = [project05_VPC_security.id]
+    security_groups = [aws_default_security_group.project05_VPC_security]
     subnets = [aws_default_subnet.public_01, aws_default_subnet.public_02, aws_default_subnet.public_03, aws_default_subnet.public_04]
 }
 
