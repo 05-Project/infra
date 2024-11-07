@@ -48,7 +48,6 @@ resource "aws_subnet" "private_02" {
   cidr_block        = "172.31.80.0/20"
   tags              = { Name = "private_02" }
   availability_zone = "ap-northeast-2c"
-
 }
 
 resource "aws_subnet" "private_03" {
@@ -72,7 +71,7 @@ resource "aws_subnet" "private_04" {
 resource "aws_lb_target_group" "project-05-lb-target" {
   name        = "project-05-lb-target"
   target_type = "alb"
-  port        = 22
+  port        = 80
   protocol    = "TCP"
   vpc_id      = aws_default_vpc.project05_VPC.id
 }
@@ -94,7 +93,12 @@ resource "aws_autoscaling_group" "project-05-was-scale-group" {
   max_size             = 4
   desired_capacity     = 2
   launch_configuration = aws_launch_configuration.project-05-was-launch.id
-  vpc_zone_identifier  = [aws_default_subnet.public_01.id, aws_default_subnet.public_02.id, aws_default_subnet.public_03.id, aws_default_subnet.public_04.id]
+  vpc_zone_identifier = [
+    aws_default_subnet.public_01.id,
+    aws_default_subnet.public_02.id,
+    aws_default_subnet.public_03.id,
+    aws_default_subnet.public_04.id
+  ]
 }
 
 resource "aws_lb" "project-05-kube-lb" {
@@ -102,7 +106,12 @@ resource "aws_lb" "project-05-kube-lb" {
   internal           = false
   load_balancer_type = "application"
   security_groups    = [aws_default_security_group.project05_VPC_security.id]
-  subnets            = [aws_default_subnet.public_01.id, aws_default_subnet.public_02.id, aws_default_subnet.public_03.id, aws_default_subnet.public_04.id]
+  subnets = [
+    aws_default_subnet.public_01.id,
+    aws_default_subnet.public_02.id,
+    aws_default_subnet.public_03.id,
+    aws_default_subnet.public_04.id
+  ]
 }
 
 resource "aws_lb_listener" "project05-lb-ln" {
@@ -172,13 +181,6 @@ resource "aws_security_group" "was_sg" {
   description = "WAS security group"
   vpc_id      = aws_default_vpc.project05_VPC.id
 
-  ingress {
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
   egress {
     from_port   = 0
     to_port     = 0
@@ -216,8 +218,11 @@ resource "aws_security_group" "rds_sg" {
 
 # RDS-subnet-group
 resource "aws_db_subnet_group" "rds_sub_group" {
-  name       = "rds-sub-group"
-  subnet_ids = [aws_subnet.private_03.id, aws_subnet.private_04.id]
+  name = "rds-sub-group"
+  subnet_ids = [
+    aws_subnet.private_03.id,
+    aws_subnet.private_04.id
+  ]
 
   tags = {
     Name = "rds-sub-group"
@@ -239,7 +244,7 @@ resource "aws_security_group" "bastion_sg" {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = ["172.31.0.0/20"]
   }
   egress {
     from_port   = 0
@@ -254,19 +259,49 @@ resource "aws_security_group" "bastion_sg" {
 resource "aws_security_group" "nat_sg" {
   name   = "nat-sg"
   vpc_id = aws_default_vpc.project05_VPC.id
-  ingress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
+
   egress {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
-  tags = { Name = "nat-sg" }
+  tags = {
+    Name = "nat-sg"
+  }
+}
+
+# k8s-sg
+resource "aws_security_group" "k8s-sg" {
+  vpc_id = aws_default_vpc.project05_VPC.id
+
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = 6443
+    to_port     = 6443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = 10250
+    to_port     = 10250
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
 }
 
 resource "aws_default_route_table" "project05_VPC_public_route_table" {

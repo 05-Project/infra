@@ -36,7 +36,9 @@ resource "aws_instance" "bastion_ec2" {
   subnet_id                   = aws_default_subnet.public_01.id
   vpc_security_group_ids      = [aws_security_group.bastion_sg.id]
   key_name                    = var.key_pair
-  tags                        = { Name = "bastion-ec2" }
+  tags = {
+    Name = "bastion-ec2"
+  }
 }
 
 # NAT-ec2
@@ -48,7 +50,10 @@ resource "aws_instance" "nat_ec2" {
   vpc_security_group_ids      = [aws_security_group.bastion_sg.id]
   source_dest_check           = false # 다른 인스턴스의 트래픽을 중계하도록 허용
   key_name                    = var.key_pair
-  tags                        = { Name = "nat-ec2" }
+
+  tags = {
+    Name = "nat-ec2"
+  }
 }
 
 # DB
@@ -70,4 +75,19 @@ resource "aws_db_instance" "project-05-rds" {
 }
 
 # kubernetes control plan
+# resource "aws_instance" "k8s_master" {
+#   ami             = var.ami_id
+#   instance_type   = "t2.medium"
+#   subnet_id       = aws_subnet.private_01.id
+#   security_groups = [aws_security_group.k8s-sg]
 
+#   user_data = <<-EOF
+#   #!/bin/bash
+#   yum update -y
+#   # Kubernetes repository 추가
+
+
+
+
+#   EOF
+# }
