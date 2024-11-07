@@ -37,16 +37,20 @@ resource "aws_default_subnet" "public_04" {
 }
 
 resource "aws_subnet" "private_01" {
-  vpc_id            = aws_default_vpc.project05_VPC.id
-  cidr_block        = "172.31.64.0/20"
-  tags              = { Name = "private_01" }
+  vpc_id     = aws_default_vpc.project05_VPC.id
+  cidr_block = "172.31.64.0/20"
+  tags = {
+    Name = "private_01"
+  }
   availability_zone = "ap-northeast-2a"
 }
 
 resource "aws_subnet" "private_02" {
-  vpc_id            = aws_default_vpc.project05_VPC.id
-  cidr_block        = "172.31.80.0/20"
-  tags              = { Name = "private_02" }
+  vpc_id     = aws_default_vpc.project05_VPC.id
+  cidr_block = "172.31.80.0/20"
+  tags = {
+    Name = "private_02"
+  }
   availability_zone = "ap-northeast-2c"
 }
 
@@ -105,7 +109,7 @@ resource "aws_lb" "project-05-kube-lb" {
   name               = "project-05-kube-lb"
   internal           = false
   load_balancer_type = "application"
-  security_groups    = [aws_default_security_group.project05_VPC_security.id]
+  security_groups    = [aws_security_group.alb-sg.id]
   subnets = [
     aws_default_subnet.public_01.id,
     aws_default_subnet.public_02.id,
@@ -175,11 +179,49 @@ resource "aws_default_security_group" "project05_VPC_security" {
   }
 }
 
+# alb-sg
+resource "aws_security_group" "alb-sg" {
+  name   = "alb-sg"
+  vpc_id = aws_default_vpc.project05_VPC.id
+
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = [aws_internet_gateway.project05_VPC_gateway.id]
+  }
+
+  ingress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = [aws_internet_gateway.project05_VPC_gateway.id]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "alb-sg"
+  }
+}
+
 # was-sg
 resource "aws_security_group" "was_sg" {
   name        = "was_sg"
   description = "WAS security group"
   vpc_id      = aws_default_vpc.project05_VPC.id
+
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = [aws_security_group.alb-sg.id] # alb로 들어온 트래픽만 허용
+  }
 
   egress {
     from_port   = 0
@@ -203,7 +245,7 @@ resource "aws_security_group" "rds_sg" {
     from_port   = 5432
     to_port     = 5432
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = [aws_security_group.bastion_sg.id]
   }
   egress {
     from_port   = 0
@@ -244,7 +286,7 @@ resource "aws_security_group" "bastion_sg" {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["172.31.0.0/20"]
+    cidr_blocks = ["211.34.202.2"] # 용산 SeSAC IP
   }
   egress {
     from_port   = 0
@@ -252,7 +294,9 @@ resource "aws_security_group" "bastion_sg" {
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
-  tags = { Name = "bastion-sg" }
+  tags = {
+    Name = "bastion-sg"
+  }
 }
 
 # NAT-sg
@@ -279,21 +323,21 @@ resource "aws_security_group" "k8s-sg" {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = [aws_instance.bastion_ec2.id] # Bastion Host에서만 접근
   }
 
   ingress {
     from_port   = 6443
     to_port     = 6443
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = [aws_default_vpc.project05_VPC.id] # 내부에서만 접근
   }
 
   ingress {
     from_port   = 10250
     to_port     = 10250
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = [aws_default_vpc.project05_VPC.id]
   }
 
   egress {

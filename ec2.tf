@@ -83,7 +83,6 @@ resource "aws_db_instance" "project-05-rds" {
 
 #   user_data = <<-EOF
 #   #!/bin/bash
-#   yum update -y
 #   # Kubernetes repository 추가
 
 
