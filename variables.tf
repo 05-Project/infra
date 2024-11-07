@@ -12,4 +12,3 @@ variable "key_pair" {
 
 variable "db_username" {}
 variable "db_password" {}
-

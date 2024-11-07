@@ -72,63 +72,6 @@ resource "aws_subnet" "private_04" {
   }
 }
 
-resource "aws_lb_target_group" "project-05-lb-target" {
-  name        = "project-05-lb-target"
-  target_type = "alb"
-  port        = 80
-  protocol    = "TCP"
-  vpc_id      = aws_default_vpc.project05_VPC.id
-}
-
-resource "aws_autoscaling_attachment" "project05-as-attachment" {
-  autoscaling_group_name = aws_autoscaling_group.project-05-was-scale-group.id
-  lb_target_group_arn    = aws_lb_target_group.project-05-lb-target.arn
-}
-
-resource "aws_launch_configuration" "project-05-was-launch" {
-  name_prefix     = "was-launch-config"
-  image_id        = var.ami_id
-  instance_type   = "t2.micro"
-  security_groups = [aws_security_group.was_sg.id]
-}
-
-resource "aws_autoscaling_group" "project-05-was-scale-group" {
-  min_size             = 2
-  max_size             = 4
-  desired_capacity     = 2
-  launch_configuration = aws_launch_configuration.project-05-was-launch.id
-  vpc_zone_identifier = [
-    aws_default_subnet.public_01.id,
-    aws_default_subnet.public_02.id,
-    aws_default_subnet.public_03.id,
-    aws_default_subnet.public_04.id
-  ]
-}
-
-resource "aws_lb" "project-05-kube-lb" {
-  name               = "project-05-kube-lb"
-  internal           = false
-  load_balancer_type = "application"
-  security_groups    = [aws_security_group.alb-sg.id]
-  subnets = [
-    aws_default_subnet.public_01.id,
-    aws_default_subnet.public_02.id,
-    aws_default_subnet.public_03.id,
-    aws_default_subnet.public_04.id
-  ]
-}
-
-resource "aws_lb_listener" "project05-lb-ln" {
-  load_balancer_arn = aws_lb.project-05-kube-lb.arn
-  port              = "80"
-  protocol          = "HTTP"
-
-  default_action {
-    type             = "forward"
-    target_group_arn = aws_lb_target_group.project-05-lb-target.arn
-  }
-}
-
 resource "aws_internet_gateway" "project05_VPC_gateway" {
   vpc_id = aws_default_vpc.project05_VPC.id
 }
@@ -179,139 +122,15 @@ resource "aws_default_security_group" "project05_VPC_security" {
   }
 }
 
-# alb-sg
-resource "aws_security_group" "alb-sg" {
-  name   = "alb-sg"
-  vpc_id = aws_default_vpc.project05_VPC.id
-
-  ingress {
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = [aws_internet_gateway.project05_VPC_gateway.id]
-  }
-
-  ingress {
-    from_port   = 443
-    to_port     = 443
-    protocol    = "tcp"
-    cidr_blocks = [aws_internet_gateway.project05_VPC_gateway.id]
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  tags = {
-    Name = "alb-sg"
-  }
-}
-
-# was-sg
-resource "aws_security_group" "was_sg" {
-  name        = "was_sg"
-  description = "WAS security group"
-  vpc_id      = aws_default_vpc.project05_VPC.id
-
-  ingress {
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = [aws_security_group.alb-sg.id] # alb로 들어온 트래픽만 허용
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  tags = {
-    Name = "was_sg"
-  }
-}
-
-# RDS-sg
-resource "aws_security_group" "rds_sg" {
-  name        = "rds-sg"
-  description = "RDS security group for PostgreSQL"
-  vpc_id      = aws_default_vpc.project05_VPC.id
-
-  ingress {
-    from_port   = 5432
-    to_port     = 5432
-    protocol    = "tcp"
-    cidr_blocks = [aws_security_group.bastion_sg.id]
-  }
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-  tags = {
-    Name = "rds-sg"
-  }
-}
-
 # RDS-subnet-group
 resource "aws_db_subnet_group" "rds_sub_group" {
   name = "rds-sub-group"
   subnet_ids = [
-    aws_subnet.private_03.id,
-    aws_subnet.private_04.id
+    
   ]
 
   tags = {
     Name = "rds-sub-group"
-  }
-}
-
-# EIP
-# resource "aws_eip" "lb" {
-#   domain   = "vpc"
-#   instance = aws_instance.bastion_ec2.id
-# }
-
-# Bastion-host-ec2-sg
-resource "aws_security_group" "bastion_sg" {
-  name   = "bastion-sg"
-  vpc_id = aws_default_vpc.project05_VPC.id
-
-  ingress {
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = ["211.34.202.2"] # 용산 SeSAC IP
-  }
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-  tags = {
-    Name = "bastion-sg"
-  }
-}
-
-# NAT-sg
-resource "aws_security_group" "nat_sg" {
-  name   = "nat-sg"
-  vpc_id = aws_default_vpc.project05_VPC.id
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-  tags = {
-    Name = "nat-sg"
   }
 }
 
@@ -323,14 +142,14 @@ resource "aws_security_group" "k8s-sg" {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = [aws_instance.bastion_ec2.id] # Bastion Host에서만 접근
+    cidr_blocks = [aws_instance.bastion_ec2.associate_public_ip_address] # Bastion Host에서만 접근
   }
 
   ingress {
     from_port   = 6443
     to_port     = 6443
     protocol    = "tcp"
-    cidr_blocks = [aws_default_vpc.project05_VPC.id] # 내부에서만 접근
+    cidr_blocks = [aws_default_vpc.project05_VPC.cidr_block] # 내부에서만 접근
   }
 
   ingress {
