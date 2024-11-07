@@ -39,19 +39,19 @@ resource "aws_default_subnet" "public_04" {
 resource "aws_subnet" "private_01" {
   vpc_id     = aws_default_vpc.project05_VPC.id
   cidr_block = "172.31.64.0/20"
-
   tags = {
     Name = "private_01"
   }
+  availability_zone = "ap-northeast-2a"
 }
 
 resource "aws_subnet" "private_02" {
   vpc_id     = aws_default_vpc.project05_VPC.id
   cidr_block = "172.31.80.0/20"
-
   tags = {
     Name = "private_02"
   }
+  availability_zone = "ap-northeast-2c"
 }
 
 resource "aws_subnet" "private_03" {
@@ -69,46 +69,6 @@ resource "aws_subnet" "private_04" {
 
   tags = {
     Name = "private_04"
-  }
-}
-
-resource "aws_lb_target_group" "project-05-lb-target" {
-  name        = "project-05-lb-target"
-  target_type = "alb"
-  port        = 80
-  protocol    = "HTTP"
-  vpc_id      = aws_default_vpc.project05_VPC.id
-}
-
-resource "aws_autoscaling_attachment" "project05-as-attachment" {
-  autoscaling_group_name = aws_autoscaling_group.project-05-was-scale-group.id
-  lb_target_group_arn    = aws_lb_target_group.project-05-lb-target.arn
-}
-
-resource "aws_autoscaling_group" "project-05-was-scale-group" {
-  min_size             = 2
-  max_size             = 4
-  desired_capacity     = 2
-  launch_configuration = [aws_instance.was01, aws_instance.was02]
-  vpc_zone_identifier  = [aws_default_subnet.public_01, aws_default_subnet.public_02, aws_default_subnet.public_03, aws_default_subnet.public_04]
-}
-
-resource "aws_lb" "project-05-kube-lb" {
-  name               = "project-05-kube-lb"
-  internal           = false
-  load_balancer_type = "application"
-  security_groups    = [aws_default_security_group.project05_VPC_security]
-  subnets            = [aws_default_subnet.public_01, aws_default_subnet.public_02, aws_default_subnet.public_03, aws_default_subnet.public_04]
-}
-
-resource "aws_lb_listener" "project05-lb-ln" {
-  load_balancer_arn = aws_lb.project-05-kube-lb.arn
-  port              = "80"
-  protocol          = "HTTP"
-
-  default_action {
-    type             = "forward"
-    target_group_arn = aws_lb_target_group.project-05-lb-target.arn
   }
 }
 
@@ -152,6 +112,51 @@ resource "aws_default_security_group" "project05_VPC_security" {
     self      = true
     from_port = 0
     to_port   = 0
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+# RDS-subnet-group
+resource "aws_db_subnet_group" "rds_sub_group" {
+  name = "rds-sub-group"
+  subnet_ids = [
+    
+  ]
+
+  tags = {
+    Name = "rds-sub-group"
+  }
+}
+
+# k8s-sg
+resource "aws_security_group" "k8s-sg" {
+  vpc_id = aws_default_vpc.project05_VPC.id
+
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = [aws_instance.bastion_ec2.associate_public_ip_address] # Bastion Host에서만 접근
+  }
+
+  ingress {
+    from_port   = 6443
+    to_port     = 6443
+    protocol    = "tcp"
+    cidr_blocks = [aws_default_vpc.project05_VPC.cidr_block] # 내부에서만 접근
+  }
+
+  ingress {
+    from_port   = 10250
+    to_port     = 10250
+    protocol    = "tcp"
+    cidr_blocks = [aws_default_vpc.project05_VPC.id]
   }
 
   egress {
