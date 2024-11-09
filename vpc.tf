@@ -50,6 +50,10 @@ resource "aws_default_network_acl" "project05_VPC_netacl" {
     aws_subnet.private_k8s_01.id,
     aws_subnet.private_k8s_02.id,
     aws_subnet.private_k8s_03.id,
+    aws_subnet.rds_private_1.id,
+    aws_subnet.rds_private_2.id,
+    aws_subnet.rds_private_3.id,
+    aws_subnet.rds_private_4.id,
   ]
 
   ingress {
