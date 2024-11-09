@@ -7,7 +7,7 @@ resource "aws_key_pair" "k8s_control_plane" {
   public_key = tls_private_key.k8s_control_plane.public_key_openssh
 }
 
-output "k8s_control_plane_private_key" {
+output "k8s_control_plane_ssh_private_key" {
   value     = tls_private_key.bastion.private_key_openssh
   sensitive = true
 }
