@@ -103,9 +103,9 @@ resource "aws_security_group_rule" "rds_server_in" {
 resource "aws_security_group_rule" "rds_server_out" {
   security_group_id = aws_security_group.rds_server.id
   type              = "egress"
-  from_port         = 0
-  to_port           = 0
-  protocol          = "tcp"
+  from_port         = -1
+  to_port           = -1
+  protocol          = -1
   cidr_blocks = [
     "0.0.0.0/0",
   ]
