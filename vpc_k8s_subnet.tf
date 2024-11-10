@@ -31,6 +31,10 @@ resource "aws_route_table" "project05_VPC_private_route_table" {
     cidr_block = aws_default_vpc.project05_VPC.cidr_block
     gateway_id = "local"
   }
+  route {
+    cidr_block           = "0.0.0.0/0"
+    network_interface_id = aws_instance.nat_instance.primary_network_interface_id
+  }
   tags = {
     Name = "project05_VPC_private_gateway"
   }
