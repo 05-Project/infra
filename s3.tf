@@ -1,5 +1,5 @@
 resource "aws_s3_bucket" "media_storage" {
-  bucket = "media-storage"
+  bucket = "media-storage-echgjtnt6hprkoe6"
   tags = {
     Name = "media_storage"
   }
