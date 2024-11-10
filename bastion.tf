@@ -32,6 +32,7 @@ resource "aws_instance" "bastion_ec2" {
   vpc_security_group_ids = [
     aws_security_group.bastion.id,
     aws_security_group.k8s_control_plane_client.id,
+    aws_security_group.ssh_client.id,
   ]
   tags = {
     Name = "bastion-ec2"
@@ -60,6 +61,39 @@ resource "aws_security_group_rule" "bastion_ssh" {
 
 resource "aws_security_group_rule" "bastion_out" {
   security_group_id = aws_security_group.bastion.id
+  type              = "egress"
+  from_port         = 0
+  to_port           = 0
+  protocol          = "tcp"
+  cidr_blocks = [
+    "0.0.0.0/0",
+  ]
+  ipv6_cidr_blocks = [
+    "::/0"
+  ]
+}
+
+resource "aws_security_group" "ssh_client" {
+  vpc_id = aws_default_vpc.project05_VPC.id
+  name   = "ssh_client"
+}
+
+resource "aws_security_group" "ssh_server" {
+  vpc_id = aws_default_vpc.project05_VPC.id
+  name   = "ssh_server"
+}
+
+resource "aws_security_group_rule" "ssh_server_in" {
+  security_group_id        = aws_security_group.ssh_server.id
+  source_security_group_id = aws_security_group.ssh_client.id
+  type                     = "ingress"
+  from_port                = 22
+  to_port                  = 22
+  protocol                 = "tcp"
+}
+
+resource "aws_security_group_rule" "ssh_server_out" {
+  security_group_id = aws_security_group.ssh_server.id
   type              = "egress"
   from_port         = 0
   to_port           = 0
