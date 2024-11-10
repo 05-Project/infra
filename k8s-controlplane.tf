@@ -8,7 +8,7 @@ resource "aws_key_pair" "k8s_control_plane" {
 }
 
 output "k8s_control_plane_ssh_private_key" {
-  value     = tls_private_key.bastion.private_key_openssh
+  value     = tls_private_key.k8s_control_plane.private_key_openssh
   sensitive = true
 }
 
@@ -23,6 +23,7 @@ resource "aws_instance" "k8s_control_plane_01" {
   vpc_security_group_ids = [
     aws_security_group.k8s_control_plane_server.id,
     aws_security_group.k8s_control_plane_client.id,
+    aws_security_group.ssh_server.id,
   ]
   root_block_device {
     volume_size = 32
@@ -49,6 +50,7 @@ resource "aws_instance" "k8s_control_plane_02" {
   vpc_security_group_ids = [
     aws_security_group.k8s_control_plane_server.id,
     aws_security_group.k8s_control_plane_client.id,
+    aws_security_group.ssh_server.id,
   ]
   root_block_device {
     volume_size = 32
@@ -194,9 +196,9 @@ resource "aws_security_group_rule" "k8s_control_plane_server_node_exporter" {
 resource "aws_security_group_rule" "k8s_control_plane_server_out" {
   security_group_id = aws_security_group.k8s_control_plane_server.id
   type              = "egress"
-  from_port         = 0
-  to_port           = 0
-  protocol          = "tcp"
+  from_port         = -1
+  to_port           = -1
+  protocol          = "-1"
   cidr_blocks = [
     "0.0.0.0/0",
   ]
