@@ -103,9 +103,9 @@ resource "aws_security_group_rule" "rds_server_in" {
 resource "aws_security_group_rule" "rds_server_out" {
   security_group_id = aws_security_group.rds_server.id
   type              = "egress"
-  from_port         = 0
-  to_port           = 0
-  protocol          = "tcp"
+  from_port         = -1
+  to_port           = -1
+  protocol          = -1
   cidr_blocks = [
     "0.0.0.0/0",
   ]
@@ -115,7 +115,7 @@ resource "aws_security_group_rule" "rds_server_out" {
 }
 
 resource "aws_db_parameter_group" "rds_postgres" {
-  name   = "rds postgres"
+  name   = "postgres"
   family = "postgres16"
   parameter {
     name         = "rds.force_ssl"
@@ -128,13 +128,13 @@ resource "aws_db_instance" "rds_instance" {
   skip_final_snapshot  = true
   allocated_storage    = 128
   storage_type         = "gp3"
-  identifier           = ""
+  identifier           = "postgres"
   db_subnet_group_name = aws_db_subnet_group.rds_private_subnets.name
   publicly_accessible  = false
   engine               = "postgres"
   engine_version       = "16.4"
   instance_class       = "db.t4g.micro"
-  db_name              = ""
+  db_name              = "postgres"
   username             = var.db_username
   password             = var.db_password
   ca_cert_identifier   = "rds-ca-rsa-2048-g1"
