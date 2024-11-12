@@ -1,6 +1,6 @@
 resource "aws_lb" "project05-controltarget-lb" {
   name               = "project05-controltarget-lb"
-  internal           = false
+  internal           = true
   load_balancer_type = "network"
   subnets = [
     aws_subnet.private_k8s_01.id,
@@ -61,14 +61,14 @@ resource "aws_security_group" "net-sg" {
     from_port   = 80
     to_port     = 80
     protocol    = "tcp"
-    cidr_blocks = [aws_internet_gateway.project05_VPC_gateway.id]
+    security_groups = [ aws_security_group.bastion.id ]
   }
 
   ingress {
     from_port   = 443
     to_port     = 443
     protocol    = "tcp"
-    cidr_blocks = [aws_internet_gateway.project05_VPC_gateway.id]
+    security_groups = [ aws_security_group.bastion.id ]
   }
 
   egress {
