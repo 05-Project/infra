@@ -1,15 +1,3 @@
-resource "aws_lb_target_group" "project05-alb-target" {
-  name        = "project05-alb-target"
-  target_type = "alb"
-  port        = 80
-  protocol    = "HTTP"
-  vpc_id      = aws_default_vpc.project05_VPC.id
-
-  tags = {
-    Name = "project05-alb-target"
-  }
-}
-
 resource "aws_lb" "project05-nodetarget-lb" {
   name               = "project05-nodetarget-lb"
   internal           = false
@@ -19,28 +7,21 @@ resource "aws_lb" "project05-nodetarget-lb" {
     aws_subnet.private_k8s_02.id,
     aws_subnet.private_k8s_03.id
   ]
-
   tags = {
     Name = "project05-nodetarget-lb"
   }
 }
 
-resource "aws_lb_target_group_attachment" "project05-attach-node01" {
-  target_group_arn = aws_lb_target_group.project05-alb-target.arn
-  target_id        = aws_instance.node01.id
-  port             = 80
-}
+resource "aws_lb_target_group" "project05-alb-target" {
+  name        = "project05-alb-target"
+  target_type = "ip"
+  port        = 80
+  protocol    = "HTTP"
+  vpc_id      = aws_default_vpc.project05_VPC.id
 
-resource "aws_lb_target_group_attachment" "project05-attach-node02" {
-  target_group_arn = aws_lb_target_group.project05-alb-target.arn
-  target_id        = aws_instance.node02.id
-  port             = 80
-}
-
-resource "aws_lb_target_group_attachment" "project05-attach-node03" {
-  target_group_arn = aws_lb_target_group.project05-alb-target.arn
-  target_id        = aws_instance.node03.id
-  port             = 80
+  tags = {
+    Name = "project05-alb-target"
+  }
 }
 
 resource "aws_lb_listener" "node-ln" {
@@ -53,3 +34,23 @@ resource "aws_lb_listener" "node-ln" {
     target_group_arn = aws_lb_target_group.project05-alb-target.arn
   }
 }
+
+resource "aws_lb_target_group_attachment" "project05-attach-node01" {
+  target_group_arn = aws_lb_target_group.project05-alb-target.arn
+  target_id        = "${aws_instance.k8s_node_01.private_ip}"
+  
+  port             = 80
+}
+
+# resource "aws_lb_target_group_attachment" "project05-attach-node02" {
+#   target_group_arn = aws_lb_target_group.project05-alb-target.arn
+#   target_id        = aws_instance.k8s_node02.id
+#   port             = 80
+# }
+
+# resource "aws_lb_target_group_attachment" "project05-attach-node03" {
+#   target_group_arn = aws_lb_target_group.project05-alb-target.arn
+#   target_id        = aws_instance.k8s_node03.id
+#   port             = 80
+# }
+

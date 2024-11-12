@@ -1,46 +1,93 @@
-# Worker Node Instance
-resource "aws_instance" "node01" {
-  ami           = var.ami_id
-  instance_type = "t2.micro"
-
-  network_interface {
-    network_interface_id = aws_subnet.private_01.id
-    device_index         = 0
-  }
-
-  tags = {
-    Name = "node01"
-  }
+resource "tls_private_key" "k8s_node" {
+  algorithm = "ED25519"
 }
 
-# node02-ec2
-resource "aws_instance" "node02" {
-  ami           = var.ami_id
-  instance_type = "t2.micro"
-
-  network_interface {
-    network_interface_id = aws_subnet.private_02.id
-    device_index         = 0
-  }
-
-  tags = {
-    Name = "node2"
-  }
+resource "aws_key_pair" "k8s_node" {
+  key_name   = "k8s_node"
+  public_key = tls_private_key.k8s_node.public_key_openssh
 }
 
-resource "aws_instance" "node03" {
-  ami           = var.ami_id
-  instance_type = "t2.micro"
-
-  network_interface {
-    network_interface_id = aws_subnet.private_03.id
-    device_index         = 0
-  }
-
-  tags = {
-    Name = "node03"
-  }
+output "k8s_node_ssh_private_key" {
+  value     = tls_private_key.k8s_node.private_key_openssh
+  sensitive = true
 }
+
+resource "aws_instance" "k8s_node_01" {
+  ami                         = var.ami_id
+  instance_type               = "t3.medium"
+  key_name                    = aws_key_pair.k8s_node.key_name
+  subnet_id                   = aws_subnet.private_k8s_01.id
+  disable_api_stop            = false
+  disable_api_termination     = true
+  associate_public_ip_address = false
+  vpc_security_group_ids = [
+    aws_security_group.k8s_node_server.id,
+    aws_security_group.k8s_node_client.id,
+    aws_security_group.k8s_control_plane_client.id,
+    aws_security_group.ssh_server.id,
+  ]
+  root_block_device {
+    volume_size = 32
+  }
+  metadata_options {
+    http_tokens = "required"
+  }
+  tags = {
+    Name = "node-01"
+  }
+  depends_on = [
+    aws_subnet.private_k8s_01
+  ]
+}
+
+resource "aws_security_group" "k8s_node_client" {
+  name   = "k8s_node_client"
+  vpc_id = aws_default_vpc.project05_VPC.id
+}
+
+resource "aws_security_group" "k8s_node_server" {
+  name   = "k8s_node_server"
+  vpc_id = aws_default_vpc.project05_VPC.id
+}
+
+resource "aws_security_group_rule" "k8s_node_server_kubelet_api" {
+  security_group_id        = aws_security_group.k8s_node_server.id
+  source_security_group_id = aws_security_group.k8s_node_client.id
+  type                     = "ingress"
+  from_port                = 10250
+  to_port                  = 10250
+  protocol                 = "tcp"
+}
+
+resource "aws_security_group_rule" "k8s_node_server_nodeports" {
+  security_group_id        = aws_security_group.k8s_node_server.id
+  source_security_group_id = aws_security_group.k8s_node_client.id
+  type                     = "ingress"
+  from_port                = 30000
+  to_port                  = 32767
+  protocol                 = "tcp"
+}
+
+resource "aws_security_group_rule" "k8s_node_server_node_exporter" {
+  security_group_id        = aws_security_group.k8s_node_server.id
+  source_security_group_id = aws_security_group.k8s_node_client.id
+  type                     = "ingress"
+  from_port                = 9100
+  to_port                  = 9100
+  protocol                 = "tcp"
+}
+
+resource "aws_security_group_rule" "k8s_node_server_out" {
+  security_group_id        = aws_security_group.k8s_node_server.id
+  source_security_group_id = aws_security_group.k8s_node_client.id
+  type                     = "egress"
+  from_port                = -1
+  to_port                  = -1
+  protocol                 = -1
+}
+
+# TODO: ALB 트레픽 허용 추가
+
 
 # S3 - node간 직접연결 없이 연결방법을 찾아야 하기 때문에 보류
 # resource "aws_connect_instance_storage_config" "node01-connect-S3" {
@@ -55,28 +102,3 @@ resource "aws_instance" "node03" {
 #    storage_type = "S3"
 #  }
 #}
-
-# node-sg
-resource "aws_security_group" "node_sg" {
-  name        = "node_sg"
-  description = "Node security group"
-  vpc_id      = aws_default_vpc.project05_VPC.id
-
-  ingress {
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = [aws_security_group.alb-sg.id] # alb로 들어온 트래픽만 허용
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  tags = {
-    Name = "node_sg"
-  }
-}

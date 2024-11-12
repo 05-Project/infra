@@ -137,6 +137,6 @@ resource "aws_db_instance" "rds_instance" {
   db_name              = "postgres"
   username             = var.db_username
   password             = var.db_password
-  ca_cert_identifier   = "rds-ca-rsa-2048-g1"
+  ca_cert_identifier   = "rds-ca-rsa2048-g1"
   parameter_group_name = aws_db_parameter_group.rds_postgres.name
 }

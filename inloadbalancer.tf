@@ -7,7 +7,6 @@ resource "aws_lb" "project05-controltarget-lb" {
     aws_subnet.private_k8s_02.id,
     aws_subnet.private_k8s_03.id
   ]
-
   tags = {
     Name = "project05-controltarget-lb"
   }
