@@ -1,14 +1,6 @@
-resource "aws_lb_target_group" "project-05-lb-target" {
-  name        = "project-05-lb-target"
-  target_type = "alb"
-  port        = 80
-  protocol    = "TCP"
-  vpc_id      = aws_default_vpc.project05_VPC.id
-}
-
 resource "aws_autoscaling_attachment" "project05-as-attachment" {
   autoscaling_group_name = aws_autoscaling_group.project-05-node-scale-group.id
-  lb_target_group_arn    = aws_lb_target_group.project-05-lb-target.arn
+  lb_target_group_arn    = aws_lb_target_group.project05-alb-target.arn
 }
 
 resource "aws_launch_configuration" "project-05-node-launch" {
@@ -29,30 +21,6 @@ resource "aws_autoscaling_group" "project-05-node-scale-group" {
     aws_default_subnet.public_03.id,
     aws_default_subnet.public_04.id
   ]
-}
-
-resource "aws_lb" "project-05-kube-lb" {
-  name               = "project-05-kube-lb"
-  internal           = false
-  load_balancer_type = "application"
-  security_groups    = [aws_security_group.alb-sg.id]
-  subnets = [
-    aws_default_subnet.public_01.id,
-    aws_default_subnet.public_02.id,
-    aws_default_subnet.public_03.id,
-    aws_default_subnet.public_04.id
-  ]
-}
-
-resource "aws_lb_listener" "project05-lb-ln" {
-  load_balancer_arn = aws_lb.project-05-kube-lb.arn
-  port              = "80"
-  protocol          = "HTTP"
-
-  default_action {
-    type             = "forward"
-    target_group_arn = aws_lb_target_group.project-05-lb-target.arn
-  }
 }
 
 resource "aws_security_group" "alb-sg" {

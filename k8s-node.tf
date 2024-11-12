@@ -4,7 +4,7 @@ resource "aws_instance" "node01" {
   instance_type = "t2.micro"
 
   network_interface {
-    network_interface_id = aws_subnet.private_01.id
+    network_interface_id = aws_subnet.private_k8s_01.id
     device_index         = 0
   }
 
@@ -19,7 +19,7 @@ resource "aws_instance" "node02" {
   instance_type = "t2.micro"
 
   network_interface {
-    network_interface_id = aws_subnet.private_02.id
+    network_interface_id = aws_subnet.private_k8s_02.id
     device_index         = 0
   }
 
@@ -33,7 +33,7 @@ resource "aws_instance" "node03" {
   instance_type = "t2.micro"
 
   network_interface {
-    network_interface_id = aws_subnet.private_03.id
+    network_interface_id = aws_subnet.private_k8s_03.id
     device_index         = 0
   }
 
