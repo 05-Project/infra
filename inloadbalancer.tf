@@ -20,7 +20,7 @@ resource "aws_lb_target_group" "project05-nlb-target" {
   port     = 6443
   protocol = "TCP"
   vpc_id   = aws_default_vpc.project05_VPC.id
-
+  deregistration_delay = 400
   tags = {
     Name = "project05-nlb-target"
   }
@@ -48,7 +48,6 @@ resource "aws_lb_listener" "control-plane-ln" {
   load_balancer_arn = aws_lb.project05-controltarget-lb.arn
   port              = 6443
   protocol          = "TCP"
-
   default_action {
     type             = "forward"
     target_group_arn = aws_lb_target_group.project05-nlb-target.arn
