@@ -24,6 +24,7 @@ resource "aws_instance" "k8s_control_plane_01" {
     aws_security_group.k8s_control_plane_server.id,
     aws_security_group.k8s_control_plane_client.id,
     aws_security_group.ssh_server.id,
+    aws_security_group.kubectl_instance.id,
   ]
   root_block_device {
     volume_size = 32
@@ -51,6 +52,7 @@ resource "aws_instance" "k8s_control_plane_02" {
     aws_security_group.k8s_control_plane_server.id,
     aws_security_group.k8s_control_plane_client.id,
     aws_security_group.ssh_server.id,
+    aws_security_group.kubectl_instance.id,
   ]
   root_block_device {
     volume_size = 32
@@ -78,6 +80,7 @@ resource "aws_instance" "k8s_control_plane_03" {
     aws_security_group.k8s_control_plane_server.id,
     aws_security_group.k8s_control_plane_client.id,
     aws_security_group.ssh_server.id,
+    aws_security_group.kubectl_instance.id,
   ]
   root_block_device {
     volume_size = 32
@@ -204,5 +207,30 @@ resource "aws_security_group_rule" "k8s_control_plane_server_out" {
   ]
   ipv6_cidr_blocks = [
     "::/0"
+  ]
+}
+
+resource "aws_security_group" "kubectl_instance" {
+  vpc_id = aws_default_vpc.project05_VPC.id
+  name   = "kubectl_instance"
+}
+
+resource "aws_security_group_rule" "kubectl_in" {
+  security_group_id        = aws_security_group.kubectl_instance.id
+  source_security_group_id = aws_security_group.kubectl_lb.id
+  type                     = "ingress"
+  from_port                = 6443
+  to_port                  = 6443
+  protocol                 = "tcp"
+}
+
+resource "aws_security_group_rule" "kubectl_out" {
+  security_group_id = aws_security_group.kubectl_instance.id
+  type              = "egress"
+  from_port         = -1
+  to_port           = -1
+  protocol          = "-1"
+  cidr_blocks = [
+    "0.0.0.0/0",
   ]
 }

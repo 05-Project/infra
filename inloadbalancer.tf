@@ -7,6 +7,9 @@ resource "aws_lb" "project05-controltarget-lb" {
     aws_subnet.private_k8s_02.id,
     aws_subnet.private_k8s_03.id
   ]
+  security_groups = [
+    aws_security_group.kubectl_lb.id,
+  ]
   tags = {
     Name = "project05-controltarget-lb"
   }
@@ -52,32 +55,7 @@ resource "aws_lb_listener" "control-plane-ln" {
   }
 }
 
-resource "aws_security_group" "net-sg" {
-  name   = "net-sg"
+resource "aws_security_group" "kubectl_lb" {
+  name   = "control-plane-lb"
   vpc_id = aws_default_vpc.project05_VPC.id
-
-  ingress {
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    security_groups = [ aws_security_group.bastion.id ]
-  }
-
-  ingress {
-    from_port   = 443
-    to_port     = 443
-    protocol    = "tcp"
-    security_groups = [ aws_security_group.bastion.id ]
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  tags = {
-    Name = "net-sg"
-  }
 }
