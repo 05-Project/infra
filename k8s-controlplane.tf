@@ -14,7 +14,7 @@ output "k8s_control_plane_ssh_private_key" {
 
 resource "aws_instance" "k8s_control_plane_01" {
   ami                         = var.ami_id
-  instance_type               = "t3.medium"
+  instance_type               = "t3.xlarge"
   key_name                    = aws_key_pair.k8s_control_plane.key_name
   subnet_id                   = aws_subnet.private_k8s_01.id
   disable_api_stop            = false
@@ -42,7 +42,7 @@ resource "aws_instance" "k8s_control_plane_01" {
 
 resource "aws_instance" "k8s_control_plane_02" {
   ami                         = var.ami_id
-  instance_type               = "t3.medium"
+  instance_type               = "t3.xlarge"
   key_name                    = aws_key_pair.k8s_control_plane.key_name
   subnet_id                   = aws_subnet.private_k8s_02.id
   disable_api_stop            = false
@@ -70,7 +70,7 @@ resource "aws_instance" "k8s_control_plane_02" {
 
 resource "aws_instance" "k8s_control_plane_03" {
   ami                         = var.ami_id
-  instance_type               = "t3.medium"
+  instance_type               = "t3.xlarge"
   key_name                    = aws_key_pair.k8s_control_plane.key_name
   subnet_id                   = aws_subnet.private_k8s_03.id
   disable_api_stop            = false

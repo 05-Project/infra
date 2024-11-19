@@ -4,17 +4,17 @@ resource "aws_autoscaling_attachment" "project05-as-attachment" {
 }
 
 resource "aws_launch_template" "project-05-node-launch" {
-  name_prefix     = "node-launch-config"
-  image_id        = var.ami_id
-  instance_type   = "t3.medium"
+  name_prefix   = "node-launch-config"
+  image_id      = var.ami_id
+  instance_type = "t3.medium"
 }
 
 resource "aws_autoscaling_group" "project-05-node-scale-group" {
-  min_size             = 2
-  max_size             = 4
-  desired_capacity     = 2
+  min_size         = 2
+  max_size         = 4
+  desired_capacity = 2
   launch_template {
-    id = aws_launch_template.project-05-node-launch.id
+    id      = aws_launch_template.project-05-node-launch.id
     version = "$Latest"
   }
   vpc_zone_identifier = [
@@ -29,17 +29,17 @@ resource "aws_security_group" "alb-sg" {
   vpc_id = aws_default_vpc.project05_VPC.id
 
   ingress {
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    security_groups = [ aws_security_group.k8s_node_server.id ]
+    from_port       = 80
+    to_port         = 80
+    protocol        = "tcp"
+    security_groups = [aws_security_group.k8s_node_server.id]
   }
 
   ingress {
-    from_port   = 443
-    to_port     = 443
-    protocol    = "tcp"
-    security_groups = [ aws_security_group.k8s_node_server.id ]
+    from_port       = 443
+    to_port         = 443
+    protocol        = "tcp"
+    security_groups = [aws_security_group.k8s_node_server.id]
   }
 
   egress {

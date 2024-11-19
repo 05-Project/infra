@@ -37,20 +37,18 @@ resource "aws_lb_listener" "node-ln" {
 
 resource "aws_lb_target_group_attachment" "project05-attach-node01" {
   target_group_arn = aws_lb_target_group.project05-alb-target.arn
-  target_id        = "${aws_instance.k8s_node_01.private_ip}"
-  
+  target_id        = aws_instance.k8s_node_01.private_ip
+  port = 80
+}
+
+resource "aws_lb_target_group_attachment" "project05-attach-node02" {
+  target_group_arn = aws_lb_target_group.project05-alb-target.arn
+  target_id        = aws_instance.k8s_node_02.private_ip
   port             = 80
 }
 
-# resource "aws_lb_target_group_attachment" "project05-attach-node02" {
-#   target_group_arn = aws_lb_target_group.project05-alb-target.arn
-#   target_id        = aws_instance.k8s_node02.id
-#   port             = 80
-# }
-
-# resource "aws_lb_target_group_attachment" "project05-attach-node03" {
-#   target_group_arn = aws_lb_target_group.project05-alb-target.arn
-#   target_id        = aws_instance.k8s_node03.id
-#   port             = 80
-# }
-
+resource "aws_lb_target_group_attachment" "project05-attach-node03" {
+  target_group_arn = aws_lb_target_group.project05-alb-target.arn
+  target_id        = aws_instance.k8s_node_03.private_ip
+  port             = 80
+}

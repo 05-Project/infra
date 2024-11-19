@@ -14,7 +14,7 @@ output "k8s_node_ssh_private_key" {
 
 resource "aws_instance" "k8s_node_01" {
   ami                         = var.ami_id
-  instance_type               = "t3.medium"
+  instance_type               = "t3.xlarge"
   key_name                    = aws_key_pair.k8s_node.key_name
   subnet_id                   = aws_subnet.private_k8s_01.id
   disable_api_stop            = false
@@ -37,6 +37,62 @@ resource "aws_instance" "k8s_node_01" {
   }
   depends_on = [
     aws_subnet.private_k8s_01
+  ]
+}
+
+resource "aws_instance" "k8s_node_02" {
+  ami                         = var.ami_id
+  instance_type               = "t3.xlarge"
+  key_name                    = aws_key_pair.k8s_node.key_name
+  subnet_id                   = aws_subnet.private_k8s_02.id
+  disable_api_stop            = false
+  disable_api_termination     = true
+  associate_public_ip_address = false
+  vpc_security_group_ids = [
+    aws_security_group.k8s_node_server.id,
+    aws_security_group.k8s_node_client.id,
+    aws_security_group.k8s_control_plane_client.id,
+    aws_security_group.ssh_server.id,
+  ]
+  root_block_device {
+    volume_size = 32
+  }
+  metadata_options {
+    http_tokens = "required"
+  }
+  tags = {
+    Name = "node-02"
+  }
+  depends_on = [
+    aws_subnet.private_k8s_02
+  ]
+}
+
+resource "aws_instance" "k8s_node_03" {
+  ami                         = var.ami_id
+  instance_type               = "t3.xlarge"
+  key_name                    = aws_key_pair.k8s_node.key_name
+  subnet_id                   = aws_subnet.private_k8s_03.id
+  disable_api_stop            = false
+  disable_api_termination     = true
+  associate_public_ip_address = false
+  vpc_security_group_ids = [
+    aws_security_group.k8s_node_server.id,
+    aws_security_group.k8s_node_client.id,
+    aws_security_group.k8s_control_plane_client.id,
+    aws_security_group.ssh_server.id,
+  ]
+  root_block_device {
+    volume_size = 32
+  }
+  metadata_options {
+    http_tokens = "required"
+  }
+  tags = {
+    Name = "node-03"
+  }
+  depends_on = [
+    aws_subnet.private_k8s_03
   ]
 }
 

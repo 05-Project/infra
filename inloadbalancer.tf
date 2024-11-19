@@ -16,10 +16,11 @@ resource "aws_lb" "project05-controltarget-lb" {
 }
 
 resource "aws_lb_target_group" "project05-nlb-target" {
-  name     = "project05-nlb-target"
-  port     = 6443
-  protocol = "TCP"
-  vpc_id   = aws_default_vpc.project05_VPC.id
+  name                 = "project05-nlb-target"
+  port                 = 6443
+  protocol             = "TCP"
+  vpc_id               = aws_default_vpc.project05_VPC.id
+  deregistration_delay = 400
 
   tags = {
     Name = "project05-nlb-target"
@@ -48,7 +49,6 @@ resource "aws_lb_listener" "control-plane-ln" {
   load_balancer_arn = aws_lb.project05-controltarget-lb.arn
   port              = 6443
   protocol          = "TCP"
-
   default_action {
     type             = "forward"
     target_group_arn = aws_lb_target_group.project05-nlb-target.arn
@@ -56,6 +56,28 @@ resource "aws_lb_listener" "control-plane-ln" {
 }
 
 resource "aws_security_group" "kubectl_lb" {
-  name   = "control-plane-lb"
+  name   = "kubectl_lb"
   vpc_id = aws_default_vpc.project05_VPC.id
+}
+
+resource "aws_security_group_rule" "kubectl_lb_in" {
+  security_group_id = aws_security_group.kubectl_lb.id
+  type              = "ingress"
+  from_port         = 6443
+  to_port           = 6443
+  protocol          = "tcp"
+  cidr_blocks = [
+    "0.0.0.0/0",
+  ]
+}
+
+resource "aws_security_group_rule" "kubectl_lb_out" {
+  security_group_id = aws_security_group.kubectl_lb.id
+  type              = "egress"
+  from_port         = 6443
+  to_port           = 6443
+  protocol          = "tcp"
+  cidr_blocks = [
+    "0.0.0.0/0",
+  ]
 }
