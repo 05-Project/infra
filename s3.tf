@@ -32,12 +32,12 @@ resource "aws_s3_bucket_ownership_controls" "media_storage" {
 }
 
 # Node에게 미디어 파일을 빼고 넣는 등 S3에 접근할 수 있는 임시 권한(역할)을 생성
-resource "aws_iam_role" "s3_access_role" {
-  name = "s3_access_role"
-  assume_role_policy = data.aws_iam_policy_document.ec2_assume_role_policy.json
+resource "aws_iam_role" "media_access_role" {
+  name = "media_access_role"
+  assume_role_policy = data.aws_iam_policy_document.node_assume_role_policy.json
 }
 
-data "aws_iam_policy_document" "ec2_assume_role_policy"{
+data "aws_iam_policy_document" "node_assume_role_policy"{
   statement {
     actions = ["sts:AssumeRole"]
 
@@ -49,12 +49,12 @@ data "aws_iam_policy_document" "ec2_assume_role_policy"{
 }
 
 # S3 허용 접근 정책 생성
-resource "aws_iam_policy" "s3_allow_access_policy" {
-  name = "s3_allow_access_policy"
-  policy = data.aws_iam_policy_document.s3_allow_access_policy.json
+resource "aws_iam_policy" "media_allow_access_policy" {
+  name = "media_allow_access_policy"
+  policy = data.aws_iam_policy_document.media_allow_access_policy.json
 }
 
-data "aws_iam_policy_document" "s3_allow_access_policy" {
+data "aws_iam_policy_document" "media_allow_access_policy" {
   statement {
     actions = [
       "s3:ListBucket",
@@ -69,13 +69,13 @@ data "aws_iam_policy_document" "s3_allow_access_policy" {
 }
 
 # Role에 정책을 추가
-resource "aws_iam_role_policy_attachment" "attach_s3_access_policy" {
-  role = aws_iam_role.s3_access_role.name
-  policy_arn = aws_iam_policy.s3_access_policy.arn
+resource "aws_iam_role_policy_attachment" "attach_media_access_policy" {
+  role = aws_iam_role.media_access_role.name
+  policy_arn = aws_iam_policy.media_allow_access_policy.arn
 }
 
 # Node에 적용할 Instance Profile 생성
-resource "aws_iam_instance_profile" "ec2_instance_profile" {
-  name = "ec2_s3_instance_profile"
-  role = aws_iam_role.s3_access_role.name
+resource "aws_iam_instance_profile" "node_instance_profile" {
+  name = "node_media_instance_profile"
+  role = aws_iam_role.media_access_role.name
 }
