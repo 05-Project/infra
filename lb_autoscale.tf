@@ -7,12 +7,16 @@ resource "aws_launch_template" "project-05-node-launch" {
   name_prefix   = "node-launch-config"
   image_id      = var.ami_id
   instance_type = "t3.medium"
+
+  iam_instance_profile {
+    name = aws_iam_instance_profile.ec2_instance_profile.name
+  }
 }
 
 resource "aws_autoscaling_group" "project-05-node-scale-group" {
-  min_size         = 2
-  max_size         = 4
-  desired_capacity = 2
+  min_size         = 3
+  max_size         = 5
+  desired_capacity = 3
   launch_template {
     id      = aws_launch_template.project-05-node-launch.id
     version = "$Latest"

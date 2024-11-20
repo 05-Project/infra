@@ -30,3 +30,48 @@ resource "aws_s3_bucket_ownership_controls" "media_storage" {
     object_ownership = "BucketOwnerPreferred"
   }
 }
+
+# S3에 접근할 수 있는 역할 생성
+resource "aws_iam_role" "s3_access_role" {
+  name = "s3_access_role"
+  assume_role_policy = data.aws_iam_policy_document.ec2_assume_role_policy.json
+}
+
+data "aws_iam_policy_document" "ec2_assume_role_policy"{
+  statement {
+    actions = ["sts:AssumeRole"]
+
+    principals {
+      type = "Service"
+      identifiers = ["ec2.amazonaws.com"]
+    }
+  }
+}
+
+# S3 접근 정책 생성
+resource "aws_iam_policy" "s3_access_policy" {
+  name = "s3_access_policy"
+  policy = data.aws_iam_policy_document.s3_access_policy.json
+}
+
+data "aws_iam_policy_document" "s3_access_policy" {
+  statement {
+    actions = ["s3:*"]
+    resources = [
+      aws_s3_bucket.media_storage.arn,
+      "${aws_s3_bucket.media_storage.arn}/*"
+    ]
+  }
+}
+
+# Role에 정책을 추가
+resource "aws_iam_role_policy_attachment" "attach_s3_access_policy" {
+  role = aws_iam_role.s3_access_role.name
+  policy_arn = aws_iam_policy.s3_access_policy.arn
+}
+
+# Node에 적용할 Instance Profile 생성
+resource "aws_iam_instance_profile" "ec2_instance_profile" {
+  name = "ec2_s3_instance_profile"
+  role = aws_iam_role.s3_access_role.name
+}
