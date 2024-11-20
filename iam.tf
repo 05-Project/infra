@@ -1,3 +1,20 @@
+# Node에게 미디어 파일을 빼고 넣는 등 S3에 접근할 수 있는 임시 권한(역할)을 생성
+resource "aws_iam_role" "k8s_access_role" {
+  name = "media_access_role"
+  assume_role_policy = data.aws_iam_policy_document.k8s_assume_role.json
+}
+
+data "aws_iam_policy_document" "k8s_assume_role"{
+  statement {
+    actions = ["sts:AssumeRole"]
+
+    principals {
+      type = "Service"
+      identifiers = ["ec2.amazonaws.com"]
+    }
+  }
+}
+
 # S3 허용 접근 정책 생성
 resource "aws_iam_policy" "k8s_allow_access" {
   name = "k8s_allow_access"
