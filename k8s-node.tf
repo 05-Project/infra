@@ -20,6 +20,7 @@ resource "aws_instance" "k8s_node_01" {
   disable_api_stop            = false
   disable_api_termination     = true
   associate_public_ip_address = false
+  iam_instance_profile = aws_iam_instance_profile.node_instance_profile.name
   vpc_security_group_ids = [
     aws_security_group.k8s_node_server.id,
     aws_security_group.k8s_node_client.id,
@@ -48,6 +49,7 @@ resource "aws_instance" "k8s_node_02" {
   disable_api_stop            = false
   disable_api_termination     = true
   associate_public_ip_address = false
+  iam_instance_profile = aws_iam_instance_profile.node_instance_profile.name
   vpc_security_group_ids = [
     aws_security_group.k8s_node_server.id,
     aws_security_group.k8s_node_client.id,
@@ -76,6 +78,7 @@ resource "aws_instance" "k8s_node_03" {
   disable_api_stop            = false
   disable_api_termination     = true
   associate_public_ip_address = false
+  iam_instance_profile = aws_iam_instance_profile.node_instance_profile.name
   vpc_security_group_ids = [
     aws_security_group.k8s_node_server.id,
     aws_security_group.k8s_node_client.id,
@@ -141,20 +144,3 @@ resource "aws_security_group_rule" "k8s_node_server_out" {
   to_port                  = -1
   protocol                 = -1
 }
-
-# TODO: ALB 트레픽 허용 추가
-
-
-# S3 - node간 직접연결 없이 연결방법을 찾아야 하기 때문에 보류
-# resource "aws_connect_instance_storage_config" "node01-connect-S3" {
-#  instance_id   = aws_instance.node01.id
-#  resource_type = "MEDIA_STREAMS"
-
-#  storage_config {
-#    s3_config {
-#      bucket_name   = aws_s3_bucket.media_storage.id
-#      bucket_prefix = "media_storage"
-#    }
-#    storage_type = "S3"
-#  }
-#}
