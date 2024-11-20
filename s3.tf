@@ -31,7 +31,7 @@ resource "aws_s3_bucket_ownership_controls" "media_storage" {
   }
 }
 
-# S3에 접근할 수 있는 역할 생성
+# Node에게 미디어 파일을 빼고 넣는 등 S3에 접근할 수 있는 임시 권한(역할)을 생성
 resource "aws_iam_role" "s3_access_role" {
   name = "s3_access_role"
   assume_role_policy = data.aws_iam_policy_document.ec2_assume_role_policy.json
@@ -48,15 +48,19 @@ data "aws_iam_policy_document" "ec2_assume_role_policy"{
   }
 }
 
-# S3 접근 정책 생성
-resource "aws_iam_policy" "s3_access_policy" {
-  name = "s3_access_policy"
-  policy = data.aws_iam_policy_document.s3_access_policy.json
+# S3 허용 접근 정책 생성
+resource "aws_iam_policy" "s3_allow_access_policy" {
+  name = "s3_allow_access_policy"
+  policy = data.aws_iam_policy_document.s3_allow_access_policy.json
 }
 
-data "aws_iam_policy_document" "s3_access_policy" {
+data "aws_iam_policy_document" "s3_allow_access_policy" {
   statement {
-    actions = ["s3:*"]
+    actions = [
+      "s3:ListBucket",
+      "s3:GetObject",
+      "s3:PutObject"
+      ]
     resources = [
       aws_s3_bucket.media_storage.arn,
       "${aws_s3_bucket.media_storage.arn}/*"
