@@ -1,4 +1,6 @@
 resource "aws_default_vpc" "project05_VPC" {
+  enable_dns_hostnames = true
+  enable_dns_support   = true
   tags = {
     Name = "project05_VPC"
   }
