@@ -20,7 +20,7 @@ resource "aws_instance" "k8s_control_plane_01" {
   disable_api_stop            = false
   disable_api_termination     = true
   associate_public_ip_address = false
-  iam_instance_profile = aws_iam_instance_profile.common_kubernetes_profile.name
+  iam_instance_profile        = aws_iam_instance_profile.common_kubernetes_profile.name
   vpc_security_group_ids = [
     aws_security_group.k8s_control_plane_server.id,
     aws_security_group.k8s_control_plane_client.id,
@@ -49,7 +49,7 @@ resource "aws_instance" "k8s_control_plane_02" {
   disable_api_stop            = false
   disable_api_termination     = true
   associate_public_ip_address = false
-  iam_instance_profile = aws_iam_instance_profile.common_kubernetes_profile.name
+  iam_instance_profile        = aws_iam_instance_profile.common_kubernetes_profile.name
   vpc_security_group_ids = [
     aws_security_group.k8s_control_plane_server.id,
     aws_security_group.k8s_control_plane_client.id,
@@ -78,7 +78,7 @@ resource "aws_instance" "k8s_control_plane_03" {
   disable_api_stop            = false
   disable_api_termination     = true
   associate_public_ip_address = false
-  iam_instance_profile = aws_iam_instance_profile.common_kubernetes_profile.name
+  iam_instance_profile        = aws_iam_instance_profile.common_kubernetes_profile.name
   vpc_security_group_ids = [
     aws_security_group.k8s_control_plane_server.id,
     aws_security_group.k8s_control_plane_client.id,
