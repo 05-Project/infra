@@ -30,3 +30,37 @@ resource "aws_s3_bucket_ownership_controls" "media_storage" {
     object_ownership = "BucketOwnerPreferred"
   }
 }
+
+resource "aws_s3_bucket_cors_configuration" "media_storage" {
+  bucket = aws_s3_bucket.media_storage.id
+  cors_rule {
+    allowed_headers = ["*"]
+    allowed_methods = ["PUT"]
+    allowed_origins = ["*"]
+    expose_headers  = []
+    max_age_seconds = 300
+  }
+}
+
+data "aws_iam_policy_document" "cdn_cloudfront_access_s3" {
+  statement {
+    sid       = "AllowCloudFrontServicePrincipalReadWrite"
+    effect    = "Allow"
+    actions   = ["s3:GetObject"]
+    resources = ["${aws_s3_bucket.media_storage.arn}/*"]
+    principals {
+      type        = "Service"
+      identifiers = ["cloudfront.amazonaws.com"]
+    }
+    condition {
+      test     = "StringEquals"
+      variable = "AWS:SourceArn"
+      values   = ["${aws_cloudfront_distribution.cdn.arn}"]
+    }
+  }
+}
+
+resource "aws_s3_bucket_policy" "media_storage" {
+  bucket = aws_s3_bucket.media_storage.id
+  policy = data.aws_iam_policy_document.cdn_cloudfront_access_s3.json
+}

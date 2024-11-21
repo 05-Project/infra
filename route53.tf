@@ -8,6 +8,6 @@ resource "aws_route53_record" "github_verify_05_project" {
   type    = "TXT"
   ttl     = 300
   records = [
-    "0368746b4a"
+    "e3c8196057"
   ]
 }
