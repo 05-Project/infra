@@ -24,6 +24,7 @@ resource "aws_instance" "k8s_control_plane_01" {
   vpc_security_group_ids = [
     aws_security_group.k8s_control_plane_server.id,
     aws_security_group.k8s_control_plane_client.id,
+    aws_security_group.k8s_node_client.id,
     aws_security_group.ssh_server.id,
     aws_security_group.kubectl_instance.id,
   ]
@@ -53,6 +54,7 @@ resource "aws_instance" "k8s_control_plane_02" {
   vpc_security_group_ids = [
     aws_security_group.k8s_control_plane_server.id,
     aws_security_group.k8s_control_plane_client.id,
+    aws_security_group.k8s_node_client.id,
     aws_security_group.ssh_server.id,
     aws_security_group.kubectl_instance.id,
   ]
@@ -82,6 +84,7 @@ resource "aws_instance" "k8s_control_plane_03" {
   vpc_security_group_ids = [
     aws_security_group.k8s_control_plane_server.id,
     aws_security_group.k8s_control_plane_client.id,
+    aws_security_group.k8s_node_client.id,
     aws_security_group.ssh_server.id,
     aws_security_group.kubectl_instance.id,
   ]
