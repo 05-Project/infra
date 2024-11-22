@@ -58,10 +58,10 @@ resource "aws_security_group_rule" "bastion_ssh" {
   to_port           = 22
   cidr_blocks       = local.bastion_allow_ips
 
-# 중복 규칙이 있으면 무시하도록 설정
-  lifecycle {
-    ignore_changes = [cidr_blocks]
-  }
+  # 중복 규칙이 있으면 무시하도록 설정
+  # lifecycle {
+  #   ignore_changes = [cidr_blocks]
+  # }
 }
 
 resource "aws_security_group_rule" "bastion_out" {
