@@ -33,6 +33,7 @@ resource "aws_instance" "bastion_ec2" {
     aws_security_group.bastion.id,
     aws_security_group.k8s_control_plane_client.id,
     aws_security_group.ssh_client.id,
+    aws_security_group.rds_client.id,
   ]
   tags = {
     Name = "bastion-ec2"
