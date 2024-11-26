@@ -31,3 +31,13 @@ resource "aws_route53_record" "argocd_cname" {
     aws_lb.k8s_external_lb.dns_name,
   ]
 }
+
+resource "aws_route53_record" "grafana_cname" {
+  zone_id = aws_route53_zone.domain_05_project.zone_id
+  name    = "grafana"
+  type    = "CNAME"
+  ttl     = 300
+  records = [
+    aws_lb.k8s_external_lb.dns_name,
+  ]
+}
