@@ -26,6 +26,7 @@ resource "aws_instance" "k8s_node_01" {
     aws_security_group.k8s_node_client.id,
     aws_security_group.k8s_control_plane_client.id,
     aws_security_group.ssh_server.id,
+    aws_security_group.k8s_node_node_port.id,
   ]
   root_block_device {
     volume_size = 32
@@ -55,6 +56,7 @@ resource "aws_instance" "k8s_node_02" {
     aws_security_group.k8s_node_client.id,
     aws_security_group.k8s_control_plane_client.id,
     aws_security_group.ssh_server.id,
+    aws_security_group.k8s_node_node_port.id,
   ]
   root_block_device {
     volume_size = 32
@@ -84,6 +86,7 @@ resource "aws_instance" "k8s_node_03" {
     aws_security_group.k8s_node_client.id,
     aws_security_group.k8s_control_plane_client.id,
     aws_security_group.ssh_server.id,
+    aws_security_group.k8s_node_node_port.id,
   ]
   root_block_device {
     volume_size = 32
@@ -136,9 +139,41 @@ resource "aws_security_group_rule" "k8s_node_server_node_exporter" {
   protocol                 = "tcp"
 }
 
+resource "aws_security_group_rule" "k8s_node_server_calico_vxlan" {
+  security_group_id        = aws_security_group.k8s_node_server.id
+  source_security_group_id = aws_security_group.k8s_node_client.id
+  type                     = "ingress"
+  from_port                = 4789
+  to_port                  = 4789
+  protocol                 = "udp"
+}
+
 resource "aws_security_group_rule" "k8s_node_server_out" {
   security_group_id        = aws_security_group.k8s_node_server.id
   source_security_group_id = aws_security_group.k8s_node_client.id
+  type                     = "egress"
+  from_port                = -1
+  to_port                  = -1
+  protocol                 = -1
+}
+
+resource "aws_security_group" "k8s_node_node_port" {
+  name   = "k8s-node-node-port"
+  vpc_id = aws_default_vpc.project05_VPC.id
+}
+
+resource "aws_security_group_rule" "k8s_node_node_port_in" {
+  security_group_id        = aws_security_group.k8s_node_node_port.id
+  source_security_group_id = aws_security_group.k8s_external_lb.id
+  type                     = "ingress"
+  from_port                = 30000
+  to_port                  = 32767
+  protocol                 = -1
+}
+
+resource "aws_security_group_rule" "k8s_node_node_port_out" {
+  security_group_id        = aws_security_group.k8s_node_node_port.id
+  source_security_group_id = aws_security_group.k8s_external_lb.id
   type                     = "egress"
   from_port                = -1
   to_port                  = -1

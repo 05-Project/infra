@@ -223,7 +223,7 @@ resource "aws_security_group" "kubectl_instance" {
 
 resource "aws_security_group_rule" "kubectl_in" {
   security_group_id        = aws_security_group.kubectl_instance.id
-  source_security_group_id = aws_security_group.kubectl_lb.id
+  source_security_group_id = aws_security_group.k8s_internal_lb.id
   type                     = "ingress"
   from_port                = 6443
   to_port                  = 6443
