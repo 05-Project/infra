@@ -12,9 +12,30 @@ resource "aws_route53_record" "github_verify_05_project" {
   ]
 }
 
+resource "aws_route53_record" "non_www_cname" {
+  zone_id = aws_route53_zone.domain_05_project.zone_id
+  name    = "05-project.narumir.io"
+  type    = "A"
+  alias {
+    name                   = aws_lb.k8s_external_lb.dns_name
+    zone_id                = aws_lb.k8s_external_lb.zone_id
+    evaluate_target_health = false
+  }
+}
+
 resource "aws_route53_record" "www_cname" {
   zone_id = aws_route53_zone.domain_05_project.zone_id
   name    = "www"
+  type    = "CNAME"
+  ttl     = 300
+  records = [
+    aws_lb.k8s_external_lb.dns_name,
+  ]
+}
+
+resource "aws_route53_record" "api_cname" {
+  zone_id = aws_route53_zone.domain_05_project.zone_id
+  name    = "api"
   type    = "CNAME"
   ttl     = 300
   records = [
